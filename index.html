@@ -239,7 +239,7 @@ section{min-height:100vh;display:flex;align-items:center;justify-content:center;
       <p class="final-so">So yeah…</p>
       <p class="final-words">I don't have the right words.</p>
       <p class="final-ending">but… you look really, really nice 🙂</p>
-      <p class="final-sig">made with care, for pankti.</p>
+      <p class="final-sig">made with care by krish, for pankti.</p>
     </div>
   </section>
 
@@ -567,31 +567,75 @@ heroBtn.addEventListener('click',()=>{
 });
 
 /* ══════════ MUSIC ══════════ */
-let audioCtx=null,playing=false,gainNode;
-function startAmbient(){
-  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  gainNode=audioCtx.createGain();
-  gainNode.gain.setValueAtTime(0,audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.045,audioCtx.currentTime+3);
-  gainNode.connect(audioCtx.destination);
-  [[220,0],[329.63,5],[440,-8],[293.66,3],[174.61,-5]].forEach(([f,d])=>{
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain(),flt=audioCtx.createBiquadFilter();
-    o.type='sine';o.frequency.value=f;o.detune.value=d;
-    flt.type='lowpass';flt.frequency.value=700;g.gain.value=0.22;
-    o.connect(flt);flt.connect(g);g.connect(gainNode);o.start();
-  });
-  const lfo=audioCtx.createOscillator(),lg=audioCtx.createGain();
-  lfo.frequency.value=0.07;lg.gain.value=3;lfo.connect(lg);lfo.start();
-  playing=true;musicBtn.textContent='♬';musicBtn.classList.add('playing');
-}
-function stopAmbient(){
-  if(!audioCtx)return;
-  gainNode.gain.linearRampToValueAtTime(0,audioCtx.currentTime+1.5);
-  setTimeout(()=>{try{audioCtx.close();}catch(e){}audioCtx=null;},1600);
-  playing=false;musicBtn.textContent='♪';musicBtn.classList.remove('playing');
-}
-musicBtn.addEventListener('click',()=>playing?stopAmbient():startAmbient());
+let audioCtx = null, playing = false, gainNode;
+const musicBtn = document.getElementById("musicBtn");
 
+function startAmbient() {
+  if (audioCtx) return;
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  gainNode = audioCtx.createGain();
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.045, audioCtx.currentTime + 3);
+  gainNode.connect(audioCtx.destination);
+
+  // Ambient tones
+  [[220,0],[329.63,5],[440,-8],[293.66,3],[174.61,-5]].forEach(([f,d])=>{
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    const flt = audioCtx.createBiquadFilter();
+
+    o.type = 'sine';
+    o.frequency.value = f;
+    o.detune.value = d;
+
+    flt.type = 'lowpass';
+    flt.frequency.value = 700;
+
+    g.gain.value = 0.22;
+
+    o.connect(flt);
+    flt.connect(g);
+    g.connect(gainNode);
+
+    o.start();
+  });
+
+  // Subtle movement (LFO)
+  const lfo = audioCtx.createOscillator();
+  const lg = audioCtx.createGain();
+
+  lfo.frequency.value = 0.07;
+  lg.gain.value = 3;
+
+  lfo.connect(lg);
+  lg.connect(gainNode.gain);
+  lfo.start();
+
+  playing = true;
+  musicBtn.textContent = '♬';
+  musicBtn.classList.add('playing');
+}
+
+function stopAmbient() {
+  if (!audioCtx) return;
+
+  gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+
+  setTimeout(() => {
+    try { audioCtx.close(); } catch(e){}
+    audioCtx = null;
+  }, 1600);
+
+  playing = false;
+  musicBtn.textContent = '♪';
+  musicBtn.classList.remove('playing');
+}
+
+musicBtn.addEventListener('click', () => {
+  playing ? stopAmbient() : startAmbient();
+});
 /* ══════════ CAROUSEL ══════════ */
 const track=document.getElementById('carousel-track');
 const cards=track.querySelectorAll('.photo-card');
